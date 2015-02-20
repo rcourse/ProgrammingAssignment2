@@ -5,22 +5,22 @@
 ## "matrix" object that can cache its inverse
 
 makeCacheMatrix <- function(x = matrix()) {
-    m <- NULL
+    inv <- NULL
 
     ## Set the value of the matrix
     set <- function(y) {
         x <<- y
-        m <<- NULL
+        inv <<- NULL
     }
     
     ## Get the value of the matrix
     get <- function() x
     
     ## Set the value of the inversed matrix
-    setinv <- function(inverse) m <<- inverse
+    setinv <- function(inverse) inv <<- inverse
     
     ## Get the value of the inversed matrix
-    getinv <- function() m
+    getinv <- function() inv
     
     ## Return list of defined functions
     list(set = set, get = get, setinv = setinv, getinv = getinv)
@@ -30,21 +30,29 @@ makeCacheMatrix <- function(x = matrix()) {
 ## "matrix" returned by function makeCacheMatrix;
 ## if the inverse has already been calculated and the matrix
 ## has not changed, then the cacheSolve should retrieve
-## the inverse matrix from the cache
+## the inverse from the cache
 
 cacheSolve <- function(x, ...) {
-    m <- x$getinv()
+    inv <- x$getinv()
     
-    if(!is.null(m)) {
+    if(!is.null(inv)) {
         ## Return the inversed matrix from the cache
         message("--> getting cached inverse matrix <--")
-        return(m)
+        return(inv)
     }
   
-    ## Return a matrix that is the inverse of 'x'
     data <- x$get()
-    ## Function solve is used to inverse the matrix
-    m <- solve(data, ...)
-    x$setinv(m)
-    m
+    
+    ## Test for matrix singularity
+    if(det(data) == 0) {
+        message("Warning: singular matrix - NA value was set")
+        inv <- NA
+    } else {
+        ## Function solve is used to inverse the matrix
+        inv <- solve(data, ...)      
+    }
+
+    ## Return a matrix that is the inverse of 'x'
+    x$setinv(inv)
+    inv
 }
